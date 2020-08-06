@@ -21,7 +21,7 @@ MODULE guess_form
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 11 July 2019                                     *
+!* Last modification: by Linus Schönström on 2020-08-06                           *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -62,7 +62,7 @@ INTEGER:: NP
 REAL(dp):: isatsk
 REAL(dp):: isabinit, isbop, isbx, iscfg, iscel, iscif, iscml, iscoorat, iscrystal, iscsv
 REAL(dp):: isdd, isdlp, isfdf, isgin, isimd, isjems, islmp, islmpc, ismoldy, ispdb
-REAL(dp):: isposcar, isqepw, isqeout, isstr, isvesta, isxsf, isxv, isxmd
+REAL(dp):: isposcar, isqepw, isqeout, isstr, isvesta, isxsf, isxv, isxmd, istric
 REAL(dp):: isxyz, isexyz, issxyz
 REAL(dp):: likely
 REAL(dp):: testreal
@@ -101,6 +101,7 @@ isposcar = 0.d0  !VASP POSCAR format
 isqepw = 0.d0    !Quantum Espresso PWscf format
 isqeout = 0.d0   !Quantum Espresso PWscf output format
 isstr = 0.d0     !PDFFIT structure file format
+istric = 0.d0    !TRIC input file format
 isvesta = 0.d0   !VESTA format
 isxmd = 0.d0     !XMD format
 isxsf = 0.d0     !xCrySDen format
@@ -188,6 +189,8 @@ IF( strlength > 0 ) THEN
     isqepw = isqepw+0.6d0
   CASE('str','STR','stru','STRU')
     isstr = isstr+0.6d0
+  CASE('trc','TRC','tric','TRIC')
+    istric = istric+0.6d0
   CASE('vesta')
     isvesta = isvesta+0.6d0
   CASE('xmd','XMD')

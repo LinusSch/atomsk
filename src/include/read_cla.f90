@@ -9,7 +9,7 @@ MODULE read_cla
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 24 July 2020                                     *
+!* Last modification: by Linus Schönström on 2020-08-06                           *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -530,6 +530,15 @@ DO WHILE(i<SIZE(cla))
         & clarg=='PWSCF' .OR. clarg=='qe' .OR. clarg=='QE' ) THEN
     Nout = Nout+1
     tempout(Nout) = 'pw'
+  ELSEIF(clarg=='str' .OR. clarg=='STR' .OR. clarg=='stru' .OR. clarg=='STRU') THEN
+    Nout = Nout+1
+    tempout(Nout) = 'stru'
+  ELSEIF(clarg=='sxyz' .OR. clarg=='SXYZ') THEN
+    Nout = Nout+1
+    tempout(Nout) = 'sxyz'
+  ELSEIF(clarg=='trc' .OR. clarg=='TRC' .OR. clarg=='tric' .OR. clarg=='TRIC') THEN
+    Nout = Nout+1
+    tempout(Nout) = 'trc'
   ELSEIF(clarg=='vesta' .OR. clarg=='VESTA') THEN
     Nout = Nout+1
     tempout(Nout) = 'vesta'
@@ -540,12 +549,6 @@ DO WHILE(i<SIZE(cla))
         & .OR. clarg=='XCrysDen'.OR. clarg=='XCRYSDEN') THEN
     Nout = Nout+1
     tempout(Nout) = 'xsf'
-  ELSEIF(clarg=='str' .OR. clarg=='STR' .OR. clarg=='stru' .OR. clarg=='STRU') THEN
-    Nout = Nout+1
-    tempout(Nout) = 'stru'
-  ELSEIF(clarg=='sxyz' .OR. clarg=='SXYZ') THEN
-    Nout = Nout+1
-    tempout(Nout) = 'sxyz'
   ELSEIF(clarg=='xv' .OR. clarg=='XV') THEN
     Nout = Nout+1
     tempout(Nout) = 'xv'

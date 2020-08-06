@@ -11,7 +11,7 @@ MODULE comv
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel (see date in the variable "version" below)         *
+!* Last modification: by Linus Schönström on 2020-08-06                           *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -61,10 +61,11 @@ INTEGER:: verbosity          !level of verbosity of the program
 !The following array contains a list of formats available *FOR OUTPUT* only.
 !It should be updated when new formats are added to Atomsk
 !Note that each entry must be *exactly* 5 characters long (add spaces if necessary)
-CHARACTER(LEN=5),DIMENSION(27),PARAMETER:: listofformats =                             &
-& (/'atsk ','abin ','bop  ','bx   ','cfg  ','cif  ','cel  ','coo  ','csv  ','d12  ',   &
-&   'dlp  ','fdf  ','gin  ','imd  ','jems ','lmp  ','mol  ','pos  ','pw   ','vesta',   &
-&   'xmd  ','xsf  ','xv   ','xyz  ','exyz ','sxyz ','stru '    &
+!Let's keep to alphabetical order in this list as well (except for exyz and sxyz)
+CHARACTER(LEN=5),DIMENSION(28),PARAMETER:: listofformats =                             &
+& (/'abin ','atsk ','bop  ','bx   ','cel  ','cfg  ','cif  ','coo  ','csv  ','d12  ',   &
+&   'dlp  ','fdf  ','gin  ','imd  ','jems ','lmp  ','mol  ','pos  ','pw   ','stru ',   &
+&   'trc  ','vesta','xmd  ','xsf  ','xv   ','xyz  ','exyz ','sxyz '    &
 & /)
 !
 END MODULE comv

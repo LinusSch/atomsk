@@ -10,7 +10,7 @@ MODULE messages_EN
 !*     Université de Lille, Sciences et Technologies                              *
 !*     UMR CNRS 8207, UMET - C6, F-59655 Villeneuve D'Ascq, France                *
 !*     pierre.hirel@univ-lille.fr                                                 *
-!* Last modification: P. Hirel - 16 July 2020                                     *
+!* Last modification: by Linus Schönström on 2020-08-06                           *
 !**********************************************************************************
 !* This program is free software: you can redistribute it and/or modify           *
 !* it under the terms of the GNU General Public License as published by           *
@@ -492,6 +492,7 @@ WRITE(*,*) "    pos (POSCAR/VASP)       |   yes  |  yes"
 WRITE(*,*) "    pw (Quantum Espresso)   |   yes  |  yes"
 WRITE(*,*) "    pwout (QE output file)  |  yes(2)|   no"
 WRITE(*,*) "    str (PDFFIT)            |   yes  |  yes"
+WRITE(*,*) "    trc (TRIC input)        |    no  |  yes"
 WRITE(*,*) "    vesta (VESTA file)      |   yes  |  yes"
 WRITE(*,*) "    xmd (XMD file)          |   yes  |  yes"
 WRITE(*,*) "    xsf (XCrySDen)          |   yes  |  yes"
