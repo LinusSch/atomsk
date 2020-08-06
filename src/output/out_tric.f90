@@ -64,9 +64,9 @@ CHARACTER(LEN=2):: species
 CHARACTER(LEN=4096):: msg, temp
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: AUXNAMES !names of auxiliary properties
 CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: comment
-LOGICAL:: isreduced, velocities
+LOGICAL:: isreduced
 INTEGER:: i, j, Nspecies
-INTEGER:: vx, vy, vz, typecol, masscol !index of velocities, charges, types, mass in AUX
+INTEGER:: typecol, masscol !index of charges, types, mass in AUX
 REAL(dp):: smass
 REAL(dp),DIMENSION(3,3),INTENT(IN):: H   !Base vectors of the supercell
 REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: P
@@ -75,10 +75,6 @@ REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: AUX !auxiliary properties
 !
 !
 !Initialize variables
-velocities = .FALSE.
-vx = 0
-vy = 0
-vz = 0
 masscol = 0
 typecol = 0
 !
@@ -92,25 +88,6 @@ CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
 !
 !Determine how many different species are present
 CALL FIND_NSP(P(:,4),atypes)
-!
-!Check if velocities are in auxiliary properties
-IF( ALLOCATED(AUXNAMES) ) THEN
-  DO i=1,SIZE(AUXNAMES)
-    IF( TRIM(ADJUSTL(AUXNAMES(i)))=='vx' ) THEN
-      vx = i
-    ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='vy' ) THEN
-      vy = i
-    ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='vz' ) THEN
-      vz = i
-    ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='mass' ) THEN
-      masscol = i
-    ELSEIF( TRIM(ADJUSTL(AUXNAMES(i)))=='type' ) THEN
-      typecol = i
-    ENDIF
-  ENDDO
-  !
-  IF( vx.NE.0 .AND. vy.NE.0 .AND. vz.NE.0 ) velocities = .TRUE.
-ENDIF
 !
 !
 100 CONTINUE
@@ -138,13 +115,9 @@ ELSE
 ENDIF
 !
 !
-!Write atom positions and velocities
+!Write atom positions
 WRITE(msg,*) SIZE(P,1)
-IF( velocities ) THEN
-  WRITE(40,'(a)') "POSVEL "//TRIM(ADJUSTL(msg))
-ELSE
-  WRITE(40,'(a)') "POSITION "//TRIM(ADJUSTL(msg))
-ENDIF
+WRITE(40,'(a)') "POSITION "//TRIM(ADJUSTL(msg))
 !
 DO i=1,SIZE(P,1)
   IF(typecol.NE.0) THEN
@@ -157,12 +130,7 @@ DO i=1,SIZE(P,1)
     ENDDO
   ENDIF
   !
-  IF(velocities) THEN
-    WRITE(temp,150) Nspecies, P(i,1), P(i,2), P(i,3), &
-                  & AUX(i,vx), AUX(i,vy), AUX(i,vz)
-  ELSE
-    WRITE(temp,150) Nspecies, P(i,1), P(i,2), P(i,3)
-  ENDIF
+  WRITE(temp,150) Nspecies, P(i,1), P(i,2), P(i,3)
   !Write line to file
   WRITE(40,'(a)') TRIM(ADJUSTL(temp))
 ENDDO
