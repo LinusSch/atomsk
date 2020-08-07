@@ -725,7 +725,7 @@ ENDIF   !If fileexists
 !Find the best score
 likely = MAX(isabinit,isbop,isbx,iscfg,iscel,iscif,iscml,iscoorat,iscrystal,iscsv,isdd,    &
        &     isdlp,isfdf,isgin,isimd,isjems,islmp,islmpc,ismoldy,isatsk,ispdb,isposcar,    &
-       &     isqepw,isqeout,isstr,isvesta,isxmd,isxsf,isxv,isxyz,isexyz,issxyz)
+       &     isqepw,isqeout,isstr,istric,isvesta,isxmd,isxsf,isxv,isxyz,isexyz,issxyz)
 !
 IF( verbosity==4 ) THEN
   WRITE(msg,*) 'Scores of file formats: '
@@ -779,6 +779,8 @@ IF( verbosity==4 ) THEN
   WRITE(msg,*) '   QEOUT ', isqeout
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   WRITE(msg,*) '   STR ', isstr
+  CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+  WRITE(msg,*) '   TRIC ', istric
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
   WRITE(msg,*) '   VESTA ', isvesta
   CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
@@ -855,6 +857,8 @@ ELSE
     infileformat = 'pwo'
   ELSEIF(isstr==likely) THEN
     infileformat = 'str'
+  ELSEIF(istric==likely) THEN
+    infileformat = 'trc'
   ELSEIF(isvesta==likely) THEN
     infileformat = 'vesta'
   ELSEIF(isxmd==likely) THEN
