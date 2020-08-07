@@ -2700,6 +2700,14 @@ CASE(3718)
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            or the option '-properties' to set atom types manually."
   CALL DISPLAY_MSG(1,msg,logfile)
+CASE(3719)
+  !strings(1) = file format
+  msg = "/!\ WARNING: cell is not orthogonal, and the format "//TRIM(strings(1))
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "             only supports orthogonal cells. Skippping."
+  CALL DISPLAY_MSG(1,msg,logfile)
+  msg = "             You may try the option '-orthogonal-cell' to remedy this."
+  CALL DISPLAY_MSG(1,msg,logfile)
 !
 !3800-3899: ERROR MESSAGES
 CASE(3800)
