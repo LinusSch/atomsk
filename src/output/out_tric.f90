@@ -67,12 +67,17 @@ CONTAINS
 
         CHARACTER(LEN=2):: species
         CHARACTER(LEN=4096):: msg, temp
+        CHARACTER(LEN=128):: header, header_template, temp2, note
         LOGICAL:: isreduced
         REAL(dp),DIMENSION(3,3):: G   !inverse of the cell, to reduce coordinates
-        INTEGER:: i, j, Nspecies
+        INTEGER:: i, j, atype, left, right, center
         INTEGER:: typecol, masscol !index of charges, types, mass in AUX
         REAL(dp):: smass
         REAL(dp),DIMENSION(:,:),ALLOCATABLE:: atypes
+
+        INTEGER,PARAMETER:: indent= 4                ! indent of header lines
+        INTEGER,PARAMETER:: align_c= 24              ! place all comments this far into the line
+        INTEGER,PARAMETER:: align_xc= align_c + 15   ! place extra comments this far into the line
 
         !Debug message to keep track of execution
         msg = 'entering WRITE_TRIC'
@@ -106,6 +111,10 @@ CONTAINS
         !Determine how many different species are present
         CALL FIND_NSP(P(:,4),atypes)
 
+        !Prepare some template strings
+        header_template= repeat(' ',indent) // repeat('=',64)
+        center= len_trim(adjustL(header_template)) / 2 + indent
+
 
         !********************************
         !* Opening the file for writing *
@@ -114,58 +123,125 @@ CONTAINS
         OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=1000)
 
         !Write section header line
+        header= 'ATOMIC COMPOSITION'
+        left= center - len_trim(header) / 2
+        right= left + len_trim(header) + 1
+        temp= header_template
+        temp(left:right)= ' '//header//' '
+        write(40,'(a)') trim(temp)
 
-        !Write number of "types" or "sites"
+        !Write number of types
+        write(temp2,*) SIZE(atypes,1)
+        temp= adjustL(temp2)
+        temp(align_c:)= 'Number of different atomic sites'
+        write(40,'(a)') trim(temp)
 
-        !Write atom info for each "type" or "site"
+        !Write atom info for each type
         DO i=1,SIZE(atypes,1)
-        WRITE(40,'(a12,i2)') "SELECT TYPE ", i
-        CALL ATOMSPECIES(atypes(i,1),species)
-        IF(masscol>0) THEN
-            !Atom mass is defined as an auxiliary property
-            !Find an atom of this type and use its mass
-            smass=0.d0
-            j=0
-            DO WHILE(smass<=0.d0)
-            j=j+1
-            IF( NINT(P(j,4)) == NINT(atypes(i,1)) ) THEN
-                smass = AUX(j,masscol)
+
+            !create note
+            write(temp2,*) i
+            note= '('//trim(adjustL(temp2))//')'
+
+            !get symbol
+            CALL ATOMSPECIES(atypes(i,1),species)
+
+            !write symbol
+            write(temp2,*) species
+            temp= adjustL(temp2)
+            temp(align_c:)= 'Atom symbol'
+            temp(align_xc:)= note
+            write(40,'(a)') trim(temp)
+
+            !write number
+            write(temp2,*) int(atypes(i,1))
+            temp= adjustL(temp2)
+            temp(align_c:)= 'Atom number'
+            temp(align_xc:)= note
+            write(40,'(a)') trim(temp)
+
+            !get mass
+            IF(masscol>0) THEN
+                !Atom mass is defined as an auxiliary property
+                !Find an atom of this type and use its mass
+                smass=0.d0
+                j=0
+                DO WHILE(smass<=0.d0)
+                    j=j+1
+                    IF( NINT(P(j,4)) == NINT(atypes(i,1)) ) THEN
+                        smass = AUX(j,masscol)
+                    ENDIF
+                ENDDO
+            ELSE
+                !Compute atom mass
+                CALL ATOMMASS(species,smass)
             ENDIF
-            ENDDO
-        ELSE
-            !Compute atom mass
-            CALL ATOMMASS(species,smass)
-        ENDIF
-        WRITE(40,'(a5,f12.3)') "MASS ", smass
-        WRITE(40,'(a9,i2,1X,a2)') "TYPENAME ", i, species
-        ENDDO
+
+            !write mass
+            write(temp2,'(f10.6)') smass
+            temp= adjustL(temp2)
+            temp(align_c:)= 'Atom mass'
+            temp(align_xc:)= note
+            write(40,'(a)') trim(temp)
+
+            !write thermal vibrations placeholder
+            write(temp2,'(3(f5.3,1X))') 0.0, 0.0, 0.0
+            temp= adjustL(temp2)
+            temp(align_c:)= 'Amplitudes of thermal vib., Angstrom'
+            temp(len_trim(temp)+2:)= note
+            write(40,'(a)') trim(temp)
+
+
+        ENDDO  !done with per-type info
 
         !Write section header line
+        header= 'CRYSTAL STRUCTURE'
+        left= center - len_trim(header) / 2
+        right= left + len_trim(header) + 1
+        temp= header_template
+        temp(left:right)= ' '//header//' '
+        write(40,'(a)') trim(temp)
 
-        !Write box size
-        WRITE(40,'(a4,3(f12.6,1X))') 'BOX ', H(1,1), H(2,2), H(3,3)
+        !Write lattice type line
+        temp= '5'//repeat(' ',5)//'(Custom)'
+        temp(align_c:)= 'Lattice type'
+        write(40,'(a)') trim(temp)
+
+        !Write (super) cell size
+        write(temp2,'(3(f6.4,1X))') H(1,1), H(2,2), H(3,3)
+        temp= adjustL(temp2)
+        temp(align_c:)= 'Cell size (lattice parameters), Angstrom'
+        write(40,'(a)') trim(temp)
 
         !Write number of atoms
-        WRITE(msg,*) SIZE(P,1)
-        WRITE(40,'(a)') "POSITION "//TRIM(ADJUSTL(msg))
+        write(temp2,*) SIZE(P,1)
+        temp= adjustL(temp2)
+        temp(align_c:)= 'Number of atoms in cell'
+        write(40,'(a)') trim(temp)
 
-        !Write atom positions
+        !Write list of atom positions
         DO i=1,SIZE(P,1)
-        IF(typecol.NE.0) THEN
-            !use the defined types
-            Nspecies = NINT(AUX(i,typecol))
-        ELSE
-            !Replace atomic number by atom type
-            DO j=1,SIZE(atypes,1)
-            IF( atypes(j,1)==INT(P(i,4)) ) Nspecies = j
-            ENDDO
-        ENDIF
-        !
-        WRITE(temp,150) Nspecies, P(i,1), P(i,2), P(i,3)
-        !Write line to file
-        WRITE(40,'(a)') TRIM(ADJUSTL(temp))
+
+            !get type identifier
+            IF(typecol.NE.0) THEN
+                !use the defined types
+                atype = NINT(AUX(i,typecol))
+            ELSE
+                !Replace atomic number by atom type
+                DO j=1,SIZE(atypes,1)
+                    IF( atypes(j,1)==INT(P(i,4)) ) atype = j
+                ENDDO
+            ENDIF
+            !get symbol
+            CALL ATOMSPECIES(real(atype,8),species)
+            !write identifier line
+            WRITE(temp,'(i2,5X,a4)') atype, '('//species//')'
+            WRITE(40,'(a)') TRIM(ADJUSTL(temp))
+
+            !write position line
+            WRITE(temp,'( 3(f11.8,2X) )') P(i,1), P(i,2), P(i,3)
+            write(40,'(a)') trim(temp)
         ENDDO
-        150 FORMAT(i2,1X,6(f14.8,1X))
 
         !********************
         !* Closing the file *
