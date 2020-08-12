@@ -232,8 +232,10 @@ CONTAINS
                     IF( atypes(j,1)==INT(P(i,4)) ) atype = j
                 ENDDO
             ENDIF
+
             !get symbol
-            CALL ATOMSPECIES(real(atype,8),species)
+            CALL ATOMSPECIES(P(i,4),species)
+
             !write identifier line
             WRITE(temp,'(i2,5X,a4)') atype, '('//species//')'
             WRITE(40,'(a)') TRIM(ADJUSTL(temp))
