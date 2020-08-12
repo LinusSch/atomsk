@@ -70,6 +70,7 @@ CONTAINS
         CHARACTER(LEN=128):: header, header_template, temp2, note
         LOGICAL:: isreduced
         REAL(dp),DIMENSION(3,3):: G   !inverse of the cell, to reduce coordinates
+        REAL(dp):: P1, P2, P3
         INTEGER:: i, j, atype, left, right, center
         INTEGER:: typecol, masscol !index of charges, types, mass in AUX
         REAL(dp):: smass
@@ -240,8 +241,21 @@ CONTAINS
             WRITE(temp,'(i2,5X,a4)') atype, '('//species//')'
             WRITE(40,'(a)') TRIM(ADJUSTL(temp))
 
+            !create position line with reduced coordinates
+            !yanked from out_crystal.f90 by Pierre Hirel, with slight modification
+            IF(isreduced) THEN
+                WRITE(temp,'( 3(f11.8,2X) )') P(i,1), P(i,2), P(i,3)
+            ELSE
+                P1 = P(i,1)
+                P2 = P(i,2)
+                P3 = P(i,3)
+                WRITE(temp,'( 3(f11.8,2X) )')  &
+                      &  P1*G(1,1) + P2*G(2,1) + P3*G(3,1),     &
+                      &  P1*G(1,2) + P2*G(2,2) + P3*G(3,2),     &
+                      &  P1*G(1,3) + P2*G(2,3) + P3*G(3,3)
+            ENDIF
+
             !write position line
-            WRITE(temp,'( 3(f11.8,2X) )') P(i,1), P(i,2), P(i,3)
             write(40,'(a)') trim(temp)
         ENDDO
 
