@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+	<title>Atomsk - TRIC format - Pierre Hirel</title>  <!-- this file written by Linus Schönström, but I'm not sure if I should be putting my name in the title -->
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" media="screen" type="text/css" title="Default" href="./default.css" />
+    <link rel="icon" href="../img/atomsk_logo.png" type="image/png" />
+</head>
+   
+<body>
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+<h2>Format: TRIC</h2>
+
+<p><strong>Name:</strong> (Partial) input file for TRIC, Transmission of Ions through Crystals</p>
+
+<p><strong>Extension:</strong> <code>.TRC</code> (the file must be named <code>INP.TRC</code> for use with TRIC)</p>
+
+<p><strong>Specification:</strong> not available, as far as I'm aware</p>
+
+<p><strong>Visualization programs:</strong> none</p>
+
+
+
+<h4>Restrictions</h4>
+
+<p> Output only, Atomsk cannot read this format.
+</p>
+
+<p> Currently writes zeros as placeholders for amplitudes of thermal vibrations.
+	This is not good, as TRIC WILL HANG with no error message when run with such input.
+</p>
+
+<p> Orthogonal cells only, TRIC supports nothing else.
+	This can be achieved with the Atomsk option <code>-orthogonal-cell</code>.
+</p>
+
+<p> There is no automatic re-sorting of the list of atoms.
+	This can be significant as one would typically want an atom at position [000] to use as reference
+	for positioning the surface, and therefore wants to know its place in the list.
+	Sorting can be achieved with the Atomsk option <code>-sort</code>, see example below.
+</p>
+
+
+<p> Fairly untested, and the format is only defined by what the TRIC code will accept as input,
+	so bugs are expected. Report them to Linus Schönström at physics.uu.se, by email (substitute o for ö
+	in the email address).
+</p>
+
+
+
+<h4>Examples</h4>
+
+<ul>
+<li><code class="command">atomsk my_system.xsf tric</code>
+<p>This will read the file <code>my_system.xsf</code>, and convert it to the file <code>my_system.TRC</code>.</p></li>
+</ul>
+
+<ul>
+<li>
+	<code class="command">atomsk my_system.cif -sort z up -sort y up -sort x up sorted.trc</code>
+	<p> This will read the file <code>my_system.cif</code>, sort the atom list so that those with the lowest-valued 
+		coordinates appear at the top, and write it to the file <code>sorted.TRC</code>.
+	</p>
+	<p> Note: in one test this did not quite produce the desired result, y positions appeared to have been sorted
+		before z positions, although x positions appeared correctly sorted last.
+	</p>
+</li>
+</ul>
+
+
+
+<p><a href="./index.html">Back to main menu</a></p>
+
+</body>
+
+</html>
