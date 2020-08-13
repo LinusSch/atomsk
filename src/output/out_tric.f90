@@ -45,20 +45,18 @@ MODULE out_tric
 
 
 
-USE atoms
-USE comv
-USE constants
-USE messages
-USE files
-USE subroutines
-!
+USE atoms        !provides subroutines ATOMMASS, ATOMNUMBER and ATOMSPECIES
+USE comv         !global variables, e.g. dp (64 bit reals)
+USE messages     !provides subroutine ATOMSK_MSG
+USE subroutines  !provides subroutines FIND_IF_REDUCED and FIND_NSP
+                 !this file also calls INVMAT(), a subroutine defined in module math, I guess chain loading?
 IMPLICIT NONE
 
 
-CONTAINS
+CONTAINS   !just the one
     SUBROUTINE WRITE_TRIC(H,P,comment,AUXNAMES,AUX,outputfile)
 
-        CHARACTER(LEN=*),INTENT(IN):: outputfile
+        CHARACTER(LEN=*),INTENT(IN):: outputfile                          !Filename to write to
         REAL(dp),DIMENSION(3,3),INTENT(IN):: H                            !Base vectors of the supercell
         REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: P                !Positions
         REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: AUX              !Auxiliary properties
@@ -69,10 +67,10 @@ CONTAINS
         CHARACTER(LEN=4096):: msg, temp
         CHARACTER(LEN=128):: header, header_template, temp2, note
         LOGICAL:: isreduced
-        REAL(dp),DIMENSION(3,3):: G   !inverse of the cell, to reduce coordinates
-        REAL(dp):: P1, P2, P3
+        REAL(dp),DIMENSION(3,3):: G                     !inverse of the cell (H), to reduce coordinates
+        REAL(dp):: P1, P2, P3                           !used in coorinate reduction when writing coordinates
         INTEGER:: i, j, atype, left, right, center
-        INTEGER:: typecol, masscol !index of charges, types, mass in AUX
+        INTEGER:: typecol, masscol                      !index of charges, types, mass in AUX
         REAL(dp):: smass
         REAL(dp),DIMENSION(:,:),ALLOCATABLE:: atypes
 
