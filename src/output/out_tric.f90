@@ -67,10 +67,12 @@ CONTAINS   !just the one
         CHARACTER(LEN=4096):: msg, temp  !string variables: mutable, fixed size, gets filled with blanks often
         CHARACTER(LEN=128):: header, header_template, temp2, note
         LOGICAL:: isreduced
-        REAL(dp),DIMENSION(3,3):: G                     !inverse of the cell (H), to reduce coordinates
-        REAL(dp):: P1, P2, P3                           !used in coorinate reduction when writing coordinates
-        INTEGER:: i, j, atype, left, right, center
-        INTEGER:: typecol, masscol                      !index of charges, types, mass in AUX
+        REAL(dp),DIMENSION(3,3):: G      !inverse of the cell (H), to reduce coordinates
+        REAL(dp):: P1, P2, P3            !used in coorinate reduction when writing coordinates
+        INTEGER:: i, j, atype            !loop indices, atom type
+        INTEGER:: left, right, center    !used in formatting header lines
+        INTEGER:: align_note_r           !used so that notes can be inserted anywhere in the line
+        INTEGER:: typecol, masscol       !index of charges, types, mass in AUX
         REAL(dp):: smass
         REAL(dp),DIMENSION(:,:),ALLOCATABLE:: atypes
 
@@ -79,7 +81,7 @@ CONTAINS   !just the one
         !the number of digits before decimal point in a moves the end of that data
         INTEGER,PARAMETER:: indent= 4                 ! indent of header lines
         INTEGER,PARAMETER:: align_c= 3*10 +1          ! place all comments this far into the line
-        INTEGER,PARAMETER:: align_note= align_c - 5   ! place extra comments this far into the line
+        INTEGER,PARAMETER:: align_note= align_c - 5   ! place type notes this far into the line
 
         !Debug message to keep track of execution
         msg = 'entering WRITE_TRIC'
@@ -144,6 +146,7 @@ CONTAINS   !just the one
             !create note
             write(temp2,*) i
             note= '('//trim(adjustL(temp2))//')'
+            align_note_r= align_note + len_trim(note)
 
             !get symbol
             CALL ATOMSPECIES(atypes(i,1),species)
@@ -151,15 +154,15 @@ CONTAINS   !just the one
             !write symbol
             write(temp2,*) species
             temp= adjustL(temp2)
-            temp(align_note:)= note
             temp(align_c:)= 'Atom symbol'
+            temp(align_note:align_note_r)= note
             write(40,'(a)') trim(temp)
 
             !write number
             write(temp2,*) int(atypes(i,1))
             temp= adjustL(temp2)
-            temp(align_note:)= note
             temp(align_c:)= 'Atom number'
+            temp(align_note:align_note_r)= note
             write(40,'(a)') trim(temp)
 
             !get mass
@@ -182,15 +185,15 @@ CONTAINS   !just the one
             !write mass
             write(temp2,'(f10.6)') smass
             temp= adjustL(temp2)
-            temp(align_note:)= note
             temp(align_c:)= 'Atom mass'
+            temp(align_note:align_note_r)= note
             write(40,'(a)') trim(temp)
 
             !write thermal vibrations placeholder
             write(temp2,'(3(f5.3,1X))') 0.0, 0.0, 0.0
             temp= adjustL(temp2)
-            temp(align_note:)= note
             temp(align_c:)= 'Amplitudes of thermal vib., Angstrom'
+            temp(align_note:align_note_r)= note
             write(40,'(a)') trim(temp)
 
 
