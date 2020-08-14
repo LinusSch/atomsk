@@ -64,7 +64,7 @@ CONTAINS   !just the one
         CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: comment  !unused as this format does not support a comment
 
         CHARACTER(LEN=2):: species
-        CHARACTER(LEN=4096):: msg, temp
+        CHARACTER(LEN=4096):: msg, temp  !string variables: mutable, fixed size, gets filled with blanks often
         CHARACTER(LEN=128):: header, header_template, temp2, note
         LOGICAL:: isreduced
         REAL(dp),DIMENSION(3,3):: G                     !inverse of the cell (H), to reduce coordinates
@@ -74,9 +74,12 @@ CONTAINS   !just the one
         REAL(dp):: smass
         REAL(dp),DIMENSION(:,:),ALLOCATABLE:: atypes
 
-        INTEGER,PARAMETER:: indent= 4                ! indent of header lines
-        INTEGER,PARAMETER:: align_c= 24              ! place all comments this far into the line
-        INTEGER,PARAMETER:: align_xc= align_c + 15   ! place extra comments this far into the line
+        !Formatting parameters, but caution: if notes or comments are set too far left they may overwrite data!
+        !The line with lattice parameters is the pain point,
+        !the number of digits before decimal point in a moves the end of that data
+        INTEGER,PARAMETER:: indent= 4                 ! indent of header lines
+        INTEGER,PARAMETER:: align_c= 3*10 +1          ! place all comments this far into the line
+        INTEGER,PARAMETER:: align_note= align_c - 5   ! place extra comments this far into the line
 
         !Debug message to keep track of execution
         msg = 'entering WRITE_TRIC'
@@ -126,13 +129,13 @@ CONTAINS   !just the one
         left= center - len_trim(header) / 2
         right= left + len_trim(header) + 1
         temp= header_template
-        temp(left:right)= ' '//header//' '
+        temp(left:right)= ' '//header//' ' !replaces the indexed characters with header, concatenated with surrounding spaces
         write(40,'(a)') trim(temp)
 
         !Write number of types
         write(temp2,*) SIZE(atypes,1)
         temp= adjustL(temp2)
-        temp(align_c:)= 'Number of different atomic sites'
+        temp(align_c:)= 'Number of different atomic sites'  !replacing characters with open-ended indexing fills with blanks
         write(40,'(a)') trim(temp)
 
         !Write atom info for each type
@@ -148,15 +151,15 @@ CONTAINS   !just the one
             !write symbol
             write(temp2,*) species
             temp= adjustL(temp2)
+            temp(align_note:)= note
             temp(align_c:)= 'Atom symbol'
-            temp(align_xc:)= note
             write(40,'(a)') trim(temp)
 
             !write number
             write(temp2,*) int(atypes(i,1))
             temp= adjustL(temp2)
+            temp(align_note:)= note
             temp(align_c:)= 'Atom number'
-            temp(align_xc:)= note
             write(40,'(a)') trim(temp)
 
             !get mass
@@ -179,15 +182,15 @@ CONTAINS   !just the one
             !write mass
             write(temp2,'(f10.6)') smass
             temp= adjustL(temp2)
+            temp(align_note:)= note
             temp(align_c:)= 'Atom mass'
-            temp(align_xc:)= note
             write(40,'(a)') trim(temp)
 
             !write thermal vibrations placeholder
             write(temp2,'(3(f5.3,1X))') 0.0, 0.0, 0.0
             temp= adjustL(temp2)
+            temp(align_note:)= note
             temp(align_c:)= 'Amplitudes of thermal vib., Angstrom'
-            temp(len_trim(temp)+2:)= note
             write(40,'(a)') trim(temp)
 
 
@@ -207,7 +210,7 @@ CONTAINS   !just the one
         write(40,'(a)') trim(temp)
 
         !Write (super) cell size
-        write(temp2,'(3(f6.4,1X))') H(1,1), H(2,2), H(3,3)
+        write(temp2,'(3(f9.4,1X))') H(1,1), H(2,2), H(3,3)
         temp= adjustL(temp2)
         temp(align_c:)= 'Cell size (lattice parameters), Angstrom'
         write(40,'(a)') trim(temp)
