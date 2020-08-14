@@ -1,7 +1,7 @@
 MODULE out_tric
 !
 !**********************************************************************************
-!*  OUT_TRIC
+!*  OUT_TRIC                                                                      *
 !**********************************************************************************
 !* This module reads in an arrays containing atomic positions, and                *
 !* writes a partial TRIC input file with the ending .TRC.                         *
@@ -14,6 +14,8 @@ MODULE out_tric
 !* available at                                                                   *
 !*     researchgate.net/publication/51466825                                      *
 !*                                                                                *
+!* This source file is liberally commented, as the author intends to maintain it  *
+!* as needed despite not expecting to maintain his (limited) Fortran knowledge.   *
 !**********************************************************************************
 !* Based on OUT_XMD:                                                              *
 !* (C) Nov. 2013 - Pierre Hirel                                                   *
@@ -56,6 +58,7 @@ IMPLICIT NONE
 CONTAINS   !just the one
     SUBROUTINE WRITE_TRIC(H,P,comment,AUXNAMES,AUX,outputfile)
 
+        !Input variables
         CHARACTER(LEN=*),INTENT(IN):: outputfile                          !Filename to write to
         REAL(dp),DIMENSION(3,3),INTENT(IN):: H                            !Base vectors of the supercell
         REAL(dp),DIMENSION(:,:),ALLOCATABLE,INTENT(IN):: P                !Positions
@@ -63,22 +66,38 @@ CONTAINS   !just the one
         CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: AUXNAMES !names of auxiliary properties
         CHARACTER(LEN=128),DIMENSION(:),ALLOCATABLE,INTENT(IN):: comment  !unused as this format does not support a comment
 
-        CHARACTER(LEN=2):: species
+
+
+        !Variables for reduction of coordinates, if needed
+        LOGICAL:: isreduced
+        REAL(dp),DIMENSION(3,3):: G      !inverse of the cell (H)
+        REAL(dp):: P1, P2, P3
+
+        !Variables I'm not quite sure how they're used yet
+        REAL(dp),DIMENSION(:,:),ALLOCATABLE:: atypes
+        INTEGER:: typecol, masscol       !index of type and mass column in AUX property array
+
+        !Variables holding information on the current atom type or the current atom
+        INTEGER:: i, j, atype            !loop indices, atom type
+        REAL(dp):: mass                  !atom mass
+        CHARACTER(LEN=2):: species       !atom symbol
+
+        !Variables used in formatting and writing
         CHARACTER(LEN=4096):: msg, temp  !string variables: mutable, fixed size, gets filled with blanks often
         CHARACTER(LEN=128):: header, header_template, temp2, note
-        LOGICAL:: isreduced
-        REAL(dp),DIMENSION(3,3):: G      !inverse of the cell (H), to reduce coordinates
-        REAL(dp):: P1, P2, P3            !used in coorinate reduction when writing coordinates
-        INTEGER:: i, j, atype            !loop indices, atom type
         INTEGER:: left, right, center    !used in formatting header lines
         INTEGER:: align_note_r           !used so that notes can be inserted anywhere in the line
-        INTEGER:: typecol, masscol       !index of charges, types, mass in AUX
-        REAL(dp):: smass
-        REAL(dp),DIMENSION(:,:),ALLOCATABLE:: atypes
+
+
 
         !Formatting parameters, but caution: if notes or comments are set too far left they may overwrite data!
-        !The line with lattice parameters is the pain point,
-        !the number of digits before decimal point in a moves the end of that data
+        !
+        !The line with lattice parameters is the pain point, the number of
+        !digits before decimal point in a moves the end of that data.
+        !
+        !At some point I should parameterize alignment of notes in the atom
+        !list as well, that is buried in a format specifier for now.
+        !
         INTEGER,PARAMETER:: indent= 4                 ! indent of header lines
         INTEGER,PARAMETER:: align_c= 3*10 +1          ! place all comments this far into the line
         INTEGER,PARAMETER:: align_note= align_c - 5   ! place type notes this far into the line
@@ -123,7 +142,6 @@ CONTAINS   !just the one
         !********************************
         !* Opening the file for writing *
         !********************************
-        100 CONTINUE
         OPEN(UNIT=40,FILE=outputfile,STATUS='UNKNOWN',ERR=1000)
 
         !Write section header line
@@ -132,16 +150,17 @@ CONTAINS   !just the one
         right= left + len_trim(header) + 1
         temp= header_template
         temp(left:right)= ' '//header//' ' !replaces the indexed characters with header, concatenated with surrounding spaces
-        write(40,'(a)') trim(temp)
+        write(40,'(a)') trim(temp)         !a format specifier with a single string avoids a leading space created by the
+                                           !right-adjusted list-oriented write(unit,*)
 
         !Write number of types
-        write(temp2,*) SIZE(atypes,1)
+        write(temp2,*) SIZE(atypes,1)      !writing to a string variable is how you convert from number to string
         temp= adjustL(temp2)
         temp(align_c:)= 'Number of different atomic sites'  !replacing characters with open-ended indexing fills with blanks
         write(40,'(a)') trim(temp)
 
         !Write atom info for each type
-        DO i=1,SIZE(atypes,1)
+        DO i=1,SIZE(atypes,1)              !looping over the length of the atypes array
 
             !create note
             write(temp2,*) i
@@ -169,35 +188,36 @@ CONTAINS   !just the one
             IF(masscol>0) THEN
                 !Atom mass is defined as an auxiliary property
                 !Find an atom of this type and use its mass
-                smass=0.d0
+                mass=0.d0
                 j=0
-                DO WHILE(smass<=0.d0)
+                DO WHILE(mass<=0.d0)
                     j=j+1
                     IF( NINT(P(j,4)) == NINT(atypes(i,1)) ) THEN
-                        smass = AUX(j,masscol)
+                        mass = AUX(j,masscol)
                     ENDIF
                 ENDDO
             ELSE
-                !Compute atom mass
-                CALL ATOMMASS(species,smass)
+                !get atom mass from atoms.f90
+                CALL ATOMMASS(species,mass)
             ENDIF
 
             !write mass
-            write(temp2,'(f10.6)') smass
+            write(temp2,'(f10.6)') mass
             temp= adjustL(temp2)
             temp(align_c:)= 'Atom mass'
             temp(align_note:align_note_r)= note
             write(40,'(a)') trim(temp)
 
             !write thermal vibrations placeholder
-            write(temp2,'(3(f5.3,1X))') 0.0, 0.0, 0.0
+            write(temp2,'(3(f5.3,1X))') 0.0, 0.0, 0.0   ! the '1X' in the format string inserts one space
             temp= adjustL(temp2)
             temp(align_c:)= 'Amplitudes of thermal vib., Angstrom'
             temp(align_note:align_note_r)= note
             write(40,'(a)') trim(temp)
 
-
         ENDDO  !done with per-type info
+
+
 
         !Write section header line
         header= 'CRYSTAL STRUCTURE'
@@ -266,7 +286,6 @@ CONTAINS   !just the one
         !********************
         !* Closing the file *
         !********************
-        200 CONTINUE
         CLOSE(40)
 
 
