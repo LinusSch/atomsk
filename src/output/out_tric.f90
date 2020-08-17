@@ -104,7 +104,7 @@ CONTAINS   !just the one
 
         !Debug message to keep track of execution
         msg = 'entering WRITE_TRIC'
-        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+        CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
         !
         !Initialize variables
         masscol = 0
@@ -123,7 +123,7 @@ CONTAINS   !just the one
         !Determine if atom positions are in reduced coordinates
         CALL FIND_IF_REDUCED(P,isreduced)
         WRITE(msg,*) 'isreduced:', isreduced
-        CALL ATOMSK_MSG(999,(/TRIM(msg)/),(/0.d0/))
+        CALL ATOMSK_MSG(999,(/msg/),(/0.d0/))
         !if not, calculate inverse of matrix H for use in reducing when writing
         IF( .NOT.isreduced ) THEN
             msg = 'inverting matrix H'
@@ -209,15 +209,20 @@ CONTAINS   !just the one
             write(40,'(a)') trim(temp)
 
             !write thermal vibrations placeholder
-            write(temp2,'(3(f5.3,1X))') 0.0, 0.0, 0.0   ! the '1X' in the format string inserts one space
+            write(temp2,'(3(f5.3,1X))') 0.0, 0.0, 0.0   !the '1X' in the format string inserts one space
             temp= adjustL(temp2)
             temp(align_c:)= 'Amplitudes of thermal vib., Angstrom'
             temp(align_note:align_note_r)= note
+            temp(70:)= '!!! TRIC will hang, change these! !!!' !keep this warning around for longer than the one below
             write(40,'(a)') trim(temp)
 
         ENDDO  !done with per-type info
 
-
+        !Warn that TRIC will hang with zero-valued thermal vibrations (remove this when TRIC handles this gracefully)
+        msg = outputfile
+        CALL ATOMSK_MSG(3600,(/msg/),(/0.d0/))  !ATOMSK_MSG calls CHARLONG2SHRT on the string array elements, which may
+                                                !modify them (which I'm not sure whether or not it would affect things
+                                                !on this end)
 
         !Write section header line
         header= 'CRYSTAL STRUCTURE'
@@ -290,7 +295,7 @@ CONTAINS   !just the one
 
 
         !Success message
-        msg = "TRIC"
+        msg = "TRIC"      !because to create an array all the strings need to be the same size
         temp = outputfile
         CALL ATOMSK_MSG(3002,(/msg,temp/),(/0.d0/))
 

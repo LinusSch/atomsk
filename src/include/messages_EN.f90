@@ -2581,6 +2581,12 @@ CASE(3006)
 CASE(3007)
   msg = ">>> Output is NULL, no file will be written."
   CALL DISPLAY_MSG(verbosity,msg,logfile)
+CASE(3600)
+  !strings(1) = name of TRIC file
+  msg = "<!> INFO: zero-valued thermal vibrations written to file "//TRIM(strings(1))//","
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
+  msg = "          this will cause TRIC to hang with no output if left as is."
+  CALL DISPLAY_MSG(verbosity,msg,logfile)
 !
 !3700-3799: WARNING MESSAGES
 CASE(3700)
@@ -2700,7 +2706,7 @@ CASE(3718)
   CALL DISPLAY_MSG(1,msg,logfile)
   msg = "            or the option '-properties' to set atom types manually."
   CALL DISPLAY_MSG(1,msg,logfile)
-CASE(3719)
+CASE(3719) ! not orthogonal
   !strings(1) = file format
   msg = "/!\ WARNING: cell is not orthogonal, and the format "//TRIM(strings(1))
   CALL DISPLAY_MSG(1,msg,logfile)
